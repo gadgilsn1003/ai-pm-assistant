@@ -52,16 +52,19 @@
     <div class="container">
         <div class="sidebar">
             <h2>📊 AI PM Assistant</h2>
-            <div class="nav-item active">Dashboard</div>
-            <div class="nav-item">Projects</div>
-            <div class="nav-item">History</div>
-            <div class="nav-item">Settings</div>
+            <div class="nav-item active">Dashboard</div> onclick="switchView('dashboard')"
+            <div class="nav-item">Projects</div> onclick="switchView('projects')"
+            <div class="nav-item">History</div> onclick="switchView('history')"
+            <div class="nav-item">Settings</div> onclick="switchView('settings')"
         </div>
         <div class="main-content">
             <div class="header">
                 <h1>Product Requirements Analyzer</h1>
                 <p>Get instant AI-powered insights, risk assessments, and recommendations for your PRDs</p>
             </div>
+                        
+            <!-- Dashboard View (default) -->
+            <div id="dashboard-view">
             
             <div class="input-section">
                 <label for="prd-input">Enter Product Requirements Document</label>
@@ -82,6 +85,45 @@
             <div class="output" id="output" style="display: none;">
                 <h3>Analysis Results</h3>
                 <div id="results"></div>
+            </div>
+                            </div>
+            <!-- End Dashboard View -->
+            
+            <!-- Projects View -->
+            <div id="projects-view" style="display: none;">
+                <div class="header">
+                    <h1>Projects</h1>
+                    <p>Manage your product projects</p>
+                </div>
+                <div style="background: white; padding: 40px; border-radius: 12px; text-align: center;">
+                    <h3>No projects yet</h3>
+                    <p style="color: #666; margin-top: 8px;">Your analyzed PRDs will appear here</p>
+                </div>
+            </div>
+            
+            <!-- History View -->
+            <div id="history-view" style="display: none;">
+                <div class="header">
+                    <h1>Analysis History</h1>
+                    <p>View past PRD analyses</p>
+                </div>
+                <div style="background: white; padding: 40px; border-radius: 12px; text-align: center;">
+                    <h3>No history yet</h3>
+                    <p style="color: #666; margin-top: 8px;">Start analyzing PRDs to build your history</p>
+                </div>
+            </div>
+            
+            <!-- Settings View -->
+            <div id="settings-view" style="display: none;">
+                <div class="header">
+                    <h1>Settings</h1>
+                    <p>Configure your AI PM Assistant</p>
+                </div>
+                <div style="background: white; padding: 24px; border-radius: 12px;">
+                    <h3 style="margin-bottom: 16px;">AI Model Settings</h3>
+                    <p style="color: #666;">Using GPT-4o for PRD analysis</p>
+                    <p style="color: #999; font-size: 14px; margin-top: 8px;">More settings coming soon...</p>
+                </div>
             </div>
         </div>
     </div>
@@ -158,6 +200,23 @@
         }
         
         function clearInput() {
+                    
+        function switchView(view) {
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            
+            // Add active class to clicked nav item
+            event.target.classList.add('active');
+            
+            // Hide all views
+            document.getElementById('dashboard-view').style.display = 'none';
+            document.getElementById('projects-view').style.display = 'none';
+            document.getElementById('history-view').style.display = 'none';
+            document.getElementById('settings-view').style.display = 'none';
+            
+            // Show selected view
+            document.getElementById(view + '-view').style.display = 'block';
+        }
             document.getElementById('prd-input').value = '';
             document.getElementById('output').style.display = 'none';
             document.getElementById('error-msg').classList.remove('active');
