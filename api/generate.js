@@ -3,10 +3,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { updates } = req.body;
+  const { prd } = req.body;
 
-  if (!updates) {
-    return res.status(400).json({ error: 'No updates provided' });
+  if (!prd) {
+    return res.status(400).json({ error: 'No PRD provided' });
   }
 
   try {
@@ -42,7 +42,7 @@ Return only valid JSON, no markdown.`
           },
           {
             role: 'user',
-            content: `Analyze these project updates:\n\n${updates}`
+            content: `Analyze these PRD:\n\n${prd}`
           }
         ],
         temperature: 0.3
