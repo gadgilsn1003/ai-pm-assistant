@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI PM Assistant</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+    .input-section { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+    textarea { width: 100%; min-height: 150px; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }
+    button { background: #007bff; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; font-weight: 500; }
+    button:hover { background: #0056b3; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    .output { background: white; padding: 20px; border-radius: 8px; margin-top: 20px; }
+    .metric-card { display: inline-block; background: #f8f9fa; padding: 16px; border-radius: 6px; margin-right: 12px; margin-bottom: 12px; }
+    .metric-value { font-size: 28px; font-weight: 700; color: #007bff; }
+    .metric-label { font-size: 12px; color: #666; margin-top: 4px; }
+    .section { margin-top: 20px; }
+    .section-title { font-size: 18px; font-weight: 600; margin-bottom: 12px; color: #333; }
+    .risk-item, .action-item { background: #f8f9fa; padding: 12px; border-left: 3px solid #ffc107; margin-bottom: 8px; border-radius: 4px; }
+    .risk-high { border-left-color: #dc3545; }
+    .risk-medium { border-left-color: #ffc107; }
+    .risk-low { border-left-color: #28a745; }
+    .priority-critical { border-left-color: #dc3545; }
+    .priority-high { border-left-color: #fd7e14; }
+    .priority-medium { border-left-color: #ffc107; }
+    .loading { text-align: center; padding: 40px; color: #666; }
+    .error { background: #f8d7da; color: #721c24; padding: 12px; border-radius: 4px; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🤖 AI PM Assistant</h1>
+      <p>Paste team standup notes or project updates below and get instant AI-powered analysis</p>
+    </div>
+
+    <div class="input-section">
+      <textarea id="updates" placeholder="Paste your team updates here...\n\nExample:\nDesign: Landing page copy approved, homepage mockups need legal review by Tuesday.\nEngineering: API integration 80% done; analytics event tracking delayed due to expired staging credentials.\nQA: Found 2 checkout bugs; mobile Safari issue blocking release candidate."></textarea>
+      <br><br>
+      <button id="generateBtn" onclick="generateReport()">Generate PM Report</button>
+    </div>
+
+    <div id="output" style="display:none;">
+      <div class="section">
+        <div class="section-title">📊 Dashboard Metrics</div>
+        <div id="metrics"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">📋 Executive Summary</div>
+        <div id="summary" style="background:#f8f9fa; padding:12px; border-radius:4px;"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">🎯 Priority Actions</div>
+        <div id="actions"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">⚠️ Risks</div>
+        <div id="risks"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">📅 Timeline</div>
+        <div id="timeline"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function generateReport() {
+      const updates = document.getElementById('updates').value;
+      if (!updates.trim()) {
+        alert('Please enter some project updates first');
+        return;
+      }
+
+      const btn = document.getElementById('generateBtn');
+      const output = document.getElementById('output');
+      
+      btn.disabled = true;
+      btn.textContent = 'Generating...';
+      output.style.display = 'none';
+
+      try {
+        const response = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ updates })
+        });
+
+        if (!response.ok) throw new Error(`API error: ${response.status}`);
+        
+        const data = await response.json();
+        renderOutput(data);
+        output.style.display = 'block';
+      } catch (error) {
+        alert(`Error: ${error.message}`);
+        console.error(error);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Generate PM Report';
+      }
+    }
+
+    function renderOutput(data) {
+      // Metrics
+      document.getElementById('metrics').innerHTML = `
+        <div class="metric-card">
+          <div class="metric-value">${data.overall_status || 'N/A'}</div>
+          <div class="metric-label">Project Status</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">${data.priority_actions?.length || 0}</div>
+          <div class="metric-label">Priority Actions</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">${data.risks?.length || 0}</div>
+          <div class="metric-label">Active Risks</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-value">${data.sentiment || 'N/A'}</div>
+          <div class="metric-label">Team Sentiment</div>
+        </div>
+      `;
+
+      // Summary
+      document.getElementById('summary').textContent = data.executive_summary || 'No summary generated';
+
+      // Actions
+      const actionsHtml = (data.priority_actions || []).map(action => `
+        <div class="action-item priority-${action.priority?.toLowerCase()}">
+          <strong>${action.task}</strong><br>
+          <small>Owner: ${action.owner} • Due: ${action.due} • Priority: ${action.priority}</small>
+        </div>
+      `).join('');
+      document.getElementById('actions').innerHTML = actionsHtml || '<p>No priority actions</p>';
+
+      // Risks
+      const risksHtml = (data.risks || []).map(risk => `
+        <div class="risk-item risk-${risk.level?.toLowerCase()}">
+          <strong>${risk.risk}</strong><br>
+          <small>Owner: ${risk.owner} • Impact: ${risk.impact} • Level: ${risk.level}</small>
+        </div>
+      `).join('');
+      document.getElementById('risks').innerHTML = risksHtml || '<p>No risks identified</p>';
+
+      // Timeline
+      const timelineHtml = `
+        <div style="background:#f8f9fa; padding:12px; border-radius:4px;">
+          <strong>Current Sprint:</strong><br>
+          ${(data.timeline?.current_sprint || []).map(item => `• ${item}`).join('<br>')}<br><br>
+          <strong>Next Sprint:</strong><br>
+          ${(data.timeline?.next_sprint || []).map(item => `• ${item}`).join('<br>')}<br><br>
+          <strong>Milestones:</strong><br>
+          ${(data.timeline?.milestones || []).map(item => `• ${item}`).join('<br>')}
+        </div>
+      `;
+      document.getElementById('timeline').innerHTML = timelineHtml;
+    }
+  </script>
+</body>
+</html>
