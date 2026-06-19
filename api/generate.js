@@ -51,8 +51,7 @@ Return only valid JSON, no markdown.`
 
     const data = await response.json();
     const content = data.choices[0].message.content;
-    const parsed = JSON.parse(content);
-    return res.status(200).json(parsed);
+    return res.status(200).json({ analysis: content });
   } catch (error) {
     console.error('OpenAI error:', error);
     return res.status(500).json({ error: 'Failed to generate PM output' });
